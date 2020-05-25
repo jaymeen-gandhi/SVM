@@ -1,0 +1,61 @@
+---
+title: "SVM"
+author: "Jaymeen Gandhi"
+date: "5/7/2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+require(tidyverse)
+```
+
+```{r}
+social_data = read_csv("C:/Users/jayme/Downloads/social_ads.csv")
+```
+
+```{r}
+social_ready = social_data %>% select(-`User ID`) %>% mutate(Purchased = ifelse(Purchased==1 , TRUE, FALSE)) %>% mutate_if(is.numeric,scale)
+```
+
+```{r}
+set.seed(123)
+social_ready = social_ready %>% mutate(id = row_number())
+train_sd = social_ready %>% sample_frac(0.75)
+test_sd = anti_join(social_ready,train_sd,by='id')
+```
+```{r}
+require(e1071)
+```
+
+
+```{r}
+fm =formula('Purchased ~ .-id')
+sd_classifier = svm(formula = fm ,data = train_sd ,type = 'C-classification',kernel='linear')
+summary(sd_classifier)
+```
+
+```{r}
+my_predictions = predict(sd_classifier,newdata=test_sd[-4])
+
+```
+
+```{r}
+require(caret)
+confusionMatrix(my_predictions,reference = as.factor(test_sd$Purchased))
+```
+
+```{r}
+
+p_sd_classifier = svm(formula = fm ,data = train_sd ,type = 'C-classification',kernel='polynomial',cost=2)
+my_predictions2 = predict(p_sd_classifier,newdata=test_sd[-4])
+confusionMatrix(my_predictions2,reference = as.factor(test_sd$Purchased))
+```
+
+```{r}
+r_sd_classifier = svm(formula = fm ,data = train_sd ,type = 'C-classification',kernel='radial',cost =10)
+my_predictions3 = predict(p_sd_classifier,newdata=test_sd[-4])
+confusionMatrix(my_predictions3,reference = as.factor(test_sd$Purchased))
+```
+
